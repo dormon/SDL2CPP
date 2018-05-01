@@ -5,6 +5,13 @@
 
 using namespace sdl2cpp;
 
+void sdl2cpp::initSDL2(){
+  if(SDL_WasInit(SDL_INIT_EVERYTHING)&SDL_INIT_EVERYTHING)
+    return;
+  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    throw ex::Exception(SDL_GetError());
+}
+
 /**
  * @brief Creates new main loop
  *
@@ -12,8 +19,7 @@ using namespace sdl2cpp;
  * arrives
  */
 MainLoop::MainLoop(bool pooling) {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    throw ex::MainLoop(SDL_GetError());
+  initSDL2();
   m_pooling = pooling;
 }
 
@@ -29,6 +35,8 @@ MainLoop::~MainLoop() { SDL_Quit(); }
  * @param window SDLWindow
  */
 void MainLoop::addWindow(std::string const& name, SharedWindow const& window) {
+  if(!window)
+    throw ex::MainLoopMethod("addWindow","window cannot be nullptr");
   m_name2Window[name] = window;
   m_id2Name[window->getId()] = name;
   window->m_mainLoop = this;

@@ -15,6 +15,8 @@ using namespace sdl2cpp;
  */
 Window::Window(uint32_t width, uint32_t height)
 {
+  initSDL2();
+
   Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
   m_window     = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, width, height, flags);
@@ -37,7 +39,7 @@ Window::~Window()
 
 void setContextMajorVersion(uint32_t version)
 {
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version / 100) == 0)
+  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version / 100) >= 0)
     return;
   throw ex::CreateContext(std::string("SDL_GL_CONTEXT_MAJOR_VERISON - ") +
                           SDL_GetError());
@@ -45,7 +47,7 @@ void setContextMajorVersion(uint32_t version)
 
 void setContextMinorVersion(uint32_t version)
 {
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, (version % 100) / 10) ==
+  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, (version % 100) / 10) >=
       0)
     return;
   throw ex::CreateContext(std::string("SDL_GL_CONTEXT_MINOR_VERISON - ") +
@@ -54,14 +56,14 @@ void setContextMinorVersion(uint32_t version)
 
 void setContextProfile(Window::Profile profile)
 {
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile) == 0) return;
+  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile) >= 0) return;
   throw ex::CreateContext(std::string("SDL_GL_CONTEXT_PROFILE_MASK - ") +
                           SDL_GetError());
 }
 
 void setContextFlags(Window::Flag flags)
 {
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags) < 0) return;
+  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags) >= 0) return;
   throw ex::CreateContext(std::string("SDL_GL_CONTEXT_FLAGS - ") +
                           SDL_GetError());
 }

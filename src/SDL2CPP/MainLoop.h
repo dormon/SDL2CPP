@@ -11,7 +11,7 @@
 
 class SDL2CPP_EXPORT sdl2cpp::MainLoop {
  public:
-  using SharedWindow      = std::shared_ptr<Window>;
+  using SharedWindow      = std::shared_ptr<sdl2cpp::Window>;
   using WindowId          = uint32_t;
   using Name2Window       = std::map<std::string, SharedWindow>;
   using ConstNameIterator = Name2Window::const_iterator;

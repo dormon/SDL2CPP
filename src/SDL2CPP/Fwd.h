@@ -9,6 +9,8 @@ namespace sdl2cpp{
     class Window;
     class MainLoop;
     class WindowMethod;
+    class MainLoopMethod;
     class CreateContext;
   }
+  void initSDL2();
 }

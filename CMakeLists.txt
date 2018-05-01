@@ -23,6 +23,7 @@ set(SOURCES
   )
 
 set(INCLUDES
+  src/${LIB_NAME}/Fwd.h
   src/${LIB_NAME}/Window.h
   src/${LIB_NAME}/MainLoop.h
   src/${LIB_NAME}/Exception.h
@@ -31,7 +32,7 @@ set(INCLUDES
 add_library(${LIB_NAME} SHARED ${SOURCES} ${INCLUDES})
 add_library(${LIB_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
 
-target_include_directories(${LIB_NAME} PUBLIC $<INSTALL_INTERFACE:src>)
+target_include_directories(${LIB_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
 target_link_libraries(${LIB_NAME} PUBLIC SDL2::SDL2 SDL2::SDL2main)

@@ -59,6 +59,7 @@ flags = [
 '-I','.',
 '-I','src',
 '-I','/media/data/lindata/buildLibs/installed3rd/include',
+'-I','/media/windata/builtLibs/linux/install3rdParty/include',
 '-I','build',
 '-I','build/linux',
 '-I','./ClangCompleter',

@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <string>
+#include <stdexcept>
 
 #include <SDL2CPP/Fwd.h>
 #include <SDL2CPP/sdl2cpp_export.h>
@@ -44,6 +45,24 @@ class sdl2cpp::ex::MainLoop : public Class {
   MainLoop(std::string const& msg) : Class("MainLoop", msg) {}
 };
 
+class sdl2cpp::ex::MainLoopMethod : public MainLoop {
+ public:
+  MainLoopMethod(std::string const& method, std::string const& m)
+      : MainLoop(m), methodName(method)
+  {
+  }
+  virtual char const* what() const throw() override
+  {
+    return std::string(std::string("SDL2CPP::" + className + "::" + methodName +
+                                   "() - ") +
+                       std::runtime_error::what())
+        .c_str();
+  }
+
+ protected:
+  std::string methodName;
+};
+
 class sdl2cpp::ex::WindowMethod : public Window {
  public:
   WindowMethod(std::string const& method, std::string const& m)
@@ -64,5 +83,5 @@ class sdl2cpp::ex::WindowMethod : public Window {
 
 class sdl2cpp::ex::CreateContext : public WindowMethod {
  public:
-  CreateContext(std::string const& w) : WindowMethod(w, "createContext") {}
+  CreateContext(std::string const& w) : WindowMethod("createContext",w) {}
 };
