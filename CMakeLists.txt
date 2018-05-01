@@ -88,7 +88,9 @@ install(EXPORT ${LIB_NAME}Targets
   )
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}/${LIB_NAME}Config.cmake
-  "include($" "{CMAKE_CURRENT_LIST_DIR}/${LIB_NAME}Targets.cmake)"
+  "include(CMakeFindDependencyMacro)\n"
+  "find_dependency(SDL2)\n"
+  "include($" "{CMAKE_CURRENT_LIST_DIR}/${LIB_NAME}Targets.cmake)\n"
   )
 
 install(
