@@ -18,8 +18,7 @@ Window::Window(uint32_t width, uint32_t height)
   Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
   m_window     = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, width, height, flags);
-  if (!m_window)
-    throw WindowException(SDL_GetError());
+  if (!m_window) throw ex::Window(SDL_GetError());
   setWindowEventCallback(
       SDL_WINDOWEVENT_CLOSE,
       std::bind(&Window::m_defaultCloseCallback, this, std::placeholders::_1));
@@ -40,8 +39,8 @@ void setContextMajorVersion(uint32_t version)
 {
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version / 100) == 0)
     return;
-  throw CreateContext(std::string("SDL_GL_CONTEXT_MAJOR_VERISON - ") +
-                      SDL_GetError());
+  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_MAJOR_VERISON - ") +
+                          SDL_GetError());
 }
 
 void setContextMinorVersion(uint32_t version)
@@ -49,21 +48,22 @@ void setContextMinorVersion(uint32_t version)
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, (version % 100) / 10) ==
       0)
     return;
-  throw CreateContext(std::string("SDL_GL_CONTEXT_MINOR_VERISON - ") +
-                      SDL_GetError());
+  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_MINOR_VERISON - ") +
+                          SDL_GetError());
 }
 
 void setContextProfile(Window::Profile profile)
 {
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile) == 0) return;
-  throw CreateContext(std::string("SDL_GL_CONTEXT_PROFILE_MASK - ") +
-                      SDL_GetError());
+  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_PROFILE_MASK - ") +
+                          SDL_GetError());
 }
 
 void setContextFlags(Window::Flag flags)
 {
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags) < 0) return;
-  throw CreateContext(std::string("SDL_GL_CONTEXT_FLAGS - ") + SDL_GetError());
+  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_FLAGS - ") +
+                          SDL_GetError());
 }
 
 /**
@@ -90,8 +90,7 @@ void Window::createContext(std::string const& name,
         delete ctx;
       });
   *ctx = SDL_GL_CreateContext(m_window);
-  if (*ctx == nullptr)
-    throw CreateContext(SDL_GetError());
+  if (*ctx == nullptr) throw ex::CreateContext(SDL_GetError());
   m_contexts[name] = ctx;
 }
 
@@ -119,7 +118,7 @@ void Window::makeCurrent(std::string const& name) const
 {
   assert(m_contexts.count(name) != 0);
   if (SDL_GL_MakeCurrent(m_window, *m_contexts.find(name)->second) < 0)
-    throw WindowFunctionException("makeCurrent",SDL_GetError());
+    throw ex::WindowMethod("makeCurrent", SDL_GetError());
 }
 
 /**
@@ -237,7 +236,7 @@ uint32_t Window::getHeight() const
 void Window::setFullscreen(Fullscreen const& type)
 {
   if (SDL_SetWindowFullscreen(m_window, type))
-    throw WindowFunctionException("setFullscreen",SDL_GetError());
+    throw ex::WindowMethod("setFullscreen", SDL_GetError());
 }
 
 /**

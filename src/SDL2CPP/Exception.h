@@ -6,57 +6,63 @@
 #include <SDL2CPP/Fwd.h>
 #include <SDL2CPP/sdl2cpp_export.h>
 
-class sdl2cpp::Exception {
+class sdl2cpp::ex::Exception : public std::runtime_error {
  public:
-  Exception(std::string const& msg) : message(msg) {}
-  virtual ~Exception() {}
-  virtual std::string what() const { return decorator() + " - " + message; }
-
- protected:
-  std::string decorator() const { return "SDL2CPP"; }
-  std::string message;
+  Exception(std::string const& msg) : std::runtime_error(msg) {}
+  virtual ~Exception() throw() {}
+  virtual char const* what() const throw() override
+  {
+    return std::string(std::string("SDL2CPP - ") + std::runtime_error::what())
+        .c_str();
+  }
 };
 
-class sdl2cpp::ClassException : public Exception {
+class sdl2cpp::ex::Class : public Exception {
  public:
-  ClassException(std::string const& className, std::string const& msg)
+  Class(std::string const& className, std::string const& msg)
       : Exception(msg), className(className)
   {
   }
-  virtual std::string what() const override
+  virtual char const* what() const throw() override
   {
-    return decorator() + "::" + className + " - " + message;
+    return std::string(std::string("SDL2CPP::") + className + " - " +
+                       std::runtime_error::what())
+        .c_str();
   }
 
  protected:
   std::string className;
 };
 
-class sdl2cpp::WindowException : public ClassException {
+class sdl2cpp::ex::Window : public Class {
  public:
-  WindowException(std::string const& w) : ClassException("Window", w) {}
+  Window(std::string const& msg) : Class("Window", msg) {}
 };
 
-class sdl2cpp::WindowFunctionException : public WindowException {
+class sdl2cpp::ex::MainLoop : public Class {
  public:
-  WindowFunctionException(std::string const& fceName, std::string const& msg)
-      : WindowException(msg), functionName(fceName)
+  MainLoop(std::string const& msg) : Class("MainLoop", msg) {}
+};
+
+class sdl2cpp::ex::WindowMethod : public Window {
+ public:
+  WindowMethod(std::string const& method, std::string const& m)
+      : Window(m), methodName(method)
   {
   }
-  virtual std::string what() const override
+  virtual char const* what() const throw() override
   {
-    return decorator() + "::" + className + "::" + functionName + "() - " +
-           message;
+    return std::string(std::string("SDL2CPP::" + className + "::" + methodName +
+                                   "() - ") +
+                       std::runtime_error::what())
+        .c_str();
   }
 
  protected:
-  std::string functionName;
+  std::string methodName;
 };
 
-class sdl2cpp::CreateContext : public WindowFunctionException {
+class sdl2cpp::ex::CreateContext : public WindowMethod {
  public:
-  CreateContext(std::string const& w)
-      : WindowFunctionException(w, "createContext")
-  {
-  }
+  CreateContext(std::string const& w) : WindowMethod(w, "createContext") {}
 };

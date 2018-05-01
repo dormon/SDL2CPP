@@ -3,9 +3,12 @@
 namespace sdl2cpp{
   class MainLoop;
   class Window;
-  class Exception;
-  class ClassException;
-  class WindowException;
-  class WindowFunctionException;
-  class CreateContext;
+  namespace ex{
+    class Exception;
+    class Class;
+    class Window;
+    class MainLoop;
+    class WindowMethod;
+    class CreateContext;
+  }
 }

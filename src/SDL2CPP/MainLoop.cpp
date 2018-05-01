@@ -1,3 +1,4 @@
+#include <SDL2CPP/Exception.h>
 #include <SDL2CPP/MainLoop.h>
 #include <SDL2CPP/Window.h>
 #include <cassert>
@@ -12,8 +13,7 @@ using namespace sdl2cpp;
  */
 MainLoop::MainLoop(bool pooling) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    throw std::runtime_error(std::string("SDL2CPP::MainLoop::MainLoop() - ") +
-                             SDL_GetError());
+    throw ex::MainLoop(SDL_GetError());
   m_pooling = pooling;
 }
 
@@ -93,8 +93,7 @@ void MainLoop::operator()() {
     }
     if (!m_pooling)
       if (SDL_WaitEvent(&event) == 0) {
-        throw std::runtime_error(
-            std::string("SDL2CPP::MainLoop::operator() - ") + SDL_GetError());
+        throw ex::MainLoop(SDL_GetError());
         return;
       }
     while (true) {
