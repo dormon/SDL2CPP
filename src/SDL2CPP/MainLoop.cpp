@@ -114,7 +114,8 @@ void MainLoop::operator()() {
         handledByEventHandler = m_callEventHandler(event);
 
       if (!handledByEventHandler) {
-        auto windowIter = m_id2Name.find(event.window.windowID);
+        auto const& winID = event.window.windowID;
+        auto windowIter = m_id2Name.find(winID);
         bool handledByEventCallback = false;
         if (windowIter != m_id2Name.end()) {
           auto const& window = m_name2Window[windowIter->second];
