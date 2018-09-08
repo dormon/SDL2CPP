@@ -13,7 +13,7 @@
 #include <SDL2CPP/MainLoop.h>
 #include <SDL2CPP/sdl2cpp_export.h>
 
-class SDL2CPP_EXPORT sdl2cpp::Window {
+class sdl2cpp::Window {
   friend class MainLoop;
 
  public:
@@ -36,33 +36,33 @@ class SDL2CPP_EXPORT sdl2cpp::Window {
     FULLSCREEN         = SDL_WINDOW_FULLSCREEN,
     FULLSCREEN_DESKTOP = SDL_WINDOW_FULLSCREEN_DESKTOP,
   };
-  Window(uint32_t width = 1024, uint32_t height = 768);
-  ~Window();
-  void     createContext(std::string const& name    = "context",
-                         uint32_t           version = 450u,
-                         Profile            profile = CORE,
-                         Flag               flags   = NONE);
-  void     setContext(std::string const& name,
-                      Window const&      other,
-                      std::string const& otherName);
-  void     makeCurrent(std::string const& name) const;
-  void     swap() const;
-  WindowId getId() const;
-  void     setEventCallback(
+  SDL2CPP_EXPORT Window(uint32_t width = 1024, uint32_t height = 768);
+  SDL2CPP_EXPORT ~Window();
+  SDL2CPP_EXPORT void     createContext(std::string const& name    = "context",
+                                        uint32_t           version = 450u,
+                                        Profile            profile = CORE,
+                                        Flag               flags   = NONE);
+  SDL2CPP_EXPORT void     setContext(std::string const& name,
+                                     Window const&      other,
+                                     std::string const& otherName);
+  SDL2CPP_EXPORT void     makeCurrent(std::string const& name) const;
+  SDL2CPP_EXPORT void     swap() const;
+  SDL2CPP_EXPORT WindowId getId() const;
+  SDL2CPP_EXPORT void     setEventCallback(
           EventType const&                             eventType,
           std::function<bool(SDL_Event const&)> const& callback = nullptr);
-  void setWindowEventCallback(
+  SDL2CPP_EXPORT void setWindowEventCallback(
       uint8_t const&                               eventType,
       std::function<bool(SDL_Event const&)> const& callback = nullptr);
-  bool          hasEventCallback(EventType const& eventType) const;
-  bool          hasWindowEventCallback(uint8_t const& eventType) const;
-  void          setSize(uint32_t width, uint32_t height);
-  uint32_t      getWidth() const;
-  uint32_t      getHeight() const;
-  void          setFullscreen(Fullscreen const& type);
-  Fullscreen    getFullscreen();
-  SDL_Window*   getWindow() const;
-  SDL_GLContext getContext(std::string const& name) const;
+  SDL2CPP_EXPORT bool          hasEventCallback(EventType const& eventType) const;
+  SDL2CPP_EXPORT bool          hasWindowEventCallback(uint8_t const& eventType) const;
+  SDL2CPP_EXPORT void          setSize(uint32_t width, uint32_t height);
+  SDL2CPP_EXPORT uint32_t      getWidth() const;
+  SDL2CPP_EXPORT uint32_t      getHeight() const;
+  SDL2CPP_EXPORT void          setFullscreen(Fullscreen const& type);
+  SDL2CPP_EXPORT Fullscreen    getFullscreen();
+  SDL2CPP_EXPORT SDL_Window*   getWindow() const;
+  SDL2CPP_EXPORT SDL_GLContext getContext(std::string const& name) const;
 
  protected:
   using SharedSDLContext = std::shared_ptr<SDL_GLContext>;
