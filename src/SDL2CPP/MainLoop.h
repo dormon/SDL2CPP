@@ -5,7 +5,7 @@
 #include <map>
 #include <memory>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <SDL2CPP/Fwd.h>
 #include <SDL2CPP/sdl2cpp_export.h>
 

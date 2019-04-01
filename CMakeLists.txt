@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.0)
 
 project(
   SDL2CPP
-  VERSION 1.0.2
+  VERSION 1.1.0
   )
 
 #set these variables to *.cpp, *.c, ..., *.h, *.hpp, ...
@@ -31,7 +31,7 @@ set(INTERFACE_INCLUDES )
 #find_package(E F G)
 #If version is specified, it has to be the second parameter (B)
 set(ExternPrivateLibraries )
-set(ExternPublicLibraries SDL2\\ CONFIG\\ REQUIRED)
+set(ExternPublicLibraries SDL2\\ 2.0.9\\ CONFIG\\ REQUIRED)
 set(ExternInterfaceLibraries )
 
 #set these variables to targets
