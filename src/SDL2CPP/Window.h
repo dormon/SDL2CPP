@@ -65,16 +65,16 @@ class sdl2cpp::Window {
 
  protected:
   using SharedSDLContext = std::shared_ptr<SDL_GLContext>;
-  SDL_Window*                                                m_window = nullptr;
-  std::map<std::string, SharedSDLContext>                    m_contexts;
-  std::map<EventType, std::function<bool(SDL_Event const&)>> m_eventCallbacks;
+  SDL_Window*                                                window = nullptr;
+  std::map<std::string, SharedSDLContext>                    contexts;
+  std::map<EventType, std::function<bool(SDL_Event const&)>> eventCallbacks;
   std::map<uint8_t, std::function<bool(SDL_Event const&)>>
-            m_windowEventCallbacks;
-  MainLoop* m_mainLoop;
-  bool      m_defaultCloseCallback(SDL_Event const&);
-  bool      m_callEventCallback(EventType const& eventType,
+            windowEventCallbacks;
+  MainLoop* mainLoop;
+  bool      defaultCloseCallback(SDL_Event const&);
+  bool      callEventCallback(EventType const& eventType,
                                 SDL_Event const& eventData);
-  bool      m_callWindowEventCallback(uint8_t const&   eventType,
+  bool      callWindowEventCallback(uint8_t const&   eventType,
                                       SDL_Event const& eventData);
 };
 

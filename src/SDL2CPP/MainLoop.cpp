@@ -4,6 +4,7 @@
 #include <cassert>
 
 using namespace sdl2cpp;
+using namespace std;
 
 void sdl2cpp::initSDL2(){
   if(SDL_WasInit(SDL_INIT_EVERYTHING)&SDL_INIT_EVERYTHING)
@@ -20,7 +21,7 @@ void sdl2cpp::initSDL2(){
  */
 MainLoop::MainLoop(bool pooling) {
   initSDL2();
-  m_pooling = pooling;
+  pooling = pooling;
 }
 
 /**
@@ -34,12 +35,12 @@ MainLoop::~MainLoop() { SDL_Quit(); }
  * @param name name identificator of window
  * @param window SDLWindow
  */
-void MainLoop::addWindow(std::string const& name, SharedWindow const& window) {
+void MainLoop::addWindow(string const& name, SharedWindow const& window) {
   if(!window)
     throw ex::MainLoopMethod("addWindow","window cannot be nullptr");
-  m_name2Window[name] = window;
-  m_id2Name[window->getId()] = name;
-  window->m_mainLoop = this;
+  name2Window[name] = window;
+  id2Name[window->getId()] = name;
+  window->mainLoop = this;
 }
 
 /**
@@ -48,10 +49,10 @@ void MainLoop::addWindow(std::string const& name, SharedWindow const& window) {
  * @param id window id
  */
 void MainLoop::removeWindow(uint32_t const& id) {
-  assert(m_id2Name.count(id) != 0);
-  auto name = m_id2Name.at(id);
-  m_id2Name.erase(id);
-  m_name2Window.erase(name);
+  assert(id2Name.count(id) != 0);
+  auto name = id2Name.at(id);
+  id2Name.erase(id);
+  name2Window.erase(name);
 }
 
 /**
@@ -59,9 +60,9 @@ void MainLoop::removeWindow(uint32_t const& id) {
  *
  * @param name name identificator of window
  */
-void MainLoop::removeWindow(std::string const& name) {
-  m_id2Name.erase(getWindow(name)->getId());
-  m_name2Window.erase(name);
+void MainLoop::removeWindow(string const& name) {
+  id2Name.erase(getWindow(name)->getId());
+  name2Window.erase(name);
 }
 
 /**
@@ -71,8 +72,8 @@ void MainLoop::removeWindow(std::string const& name) {
  *
  * @return true if this main loop has that window
  */
-bool MainLoop::hasWindow(std::string const& name) const {
-  return m_name2Window.count(name) != 0;
+bool MainLoop::hasWindow(string const& name) const {
+  return name2Window.count(name) != 0;
 }
 
 /**
@@ -83,66 +84,77 @@ bool MainLoop::hasWindow(std::string const& name) const {
  * @return return SDLWindow
  */
 MainLoop::SharedWindow const& MainLoop::getWindow(
-    std::string const& name) const {
-  assert(m_name2Window.count(name) != 0);
-  return m_name2Window.find(name)->second;
+    string const& name) const {
+  assert(name2Window.count(name) != 0);
+  return name2Window.find(name)->second;
 }
 
 /**
  * @brief Starts main loop
  */
 void MainLoop::operator()() {
-  m_running = true;
+  running = true;
   SDL_Event event;
-  while (m_running) {
-    if (m_name2Window.size() == 0) {
-      m_running = false;
+  while (running) {
+    if (name2Window.size() == 0) {
+      running = false;
       break;
     }
-    if (!m_pooling)
+    if (!pooling)
       if (SDL_WaitEvent(&event) == 0) {
         throw ex::MainLoop(SDL_GetError());
         return;
       }
     while (true) {
-      if (m_pooling)
+      if (pooling)
         if (!SDL_PollEvent(&event)) break;
 
       bool handledByEventHandler = false;
 
       if (hasEventHandler())
-        handledByEventHandler = m_callEventHandler(event);
+        handledByEventHandler = callEventHandler(event);
 
       if (!handledByEventHandler) {
-        auto const& winID = event.window.windowID;
-        auto windowIter = m_id2Name.find(winID);
-        bool handledByEventCallback = false;
-        if (windowIter != m_id2Name.end()) {
-          auto const& window = m_name2Window[windowIter->second];
-          if (window->hasEventCallback(event.type))
-            handledByEventCallback =
-                window->m_callEventCallback(event.type, event);
-        }
-        if (!handledByEventCallback) {
-          if (event.type == SDL_WINDOWEVENT) {
-            bool handledByWindowEventCallback = false;
-            if (windowIter != m_id2Name.end()) {
-              auto const& window = m_name2Window.at(windowIter->second);
-              if (window->hasWindowEventCallback(event.window.event))
-                handledByWindowEventCallback =
-                    window->m_callWindowEventCallback(event.window.event,
-                                                      event);
+        bool handledByMainLoopEventCallback = false;
+        auto it = eventCallbacks.find(event.type);
+        if(it != eventCallbacks.end())
+          handledByMainLoopEventCallback = it->second(event);
+
+        if(!handledByMainLoopEventCallback){
+          auto const& winID = event.window.windowID;
+          auto windowIter = id2Name.find(winID);
+          bool handledByEventCallback = false;
+          if (windowIter != id2Name.end()) {
+            auto const& window = name2Window[windowIter->second];
+            if (window->hasEventCallback(event.type))
+              handledByEventCallback =
+                  window->callEventCallback(event.type, event);
+          }
+          if (!handledByEventCallback) {
+            if (event.type == SDL_WINDOWEVENT) {
+              bool handledByWindowEventCallback = false;
+              if (windowIter != id2Name.end()) {
+                auto const& window = name2Window.at(windowIter->second);
+                if (window->hasWindowEventCallback(event.window.event))
+                  handledByWindowEventCallback =
+                      window->callWindowEventCallback(event.window.event,
+                                                        event);
+              }
+              (void)handledByWindowEventCallback;
             }
-            (void)handledByWindowEventCallback;
           }
         }
       }
 
-      if (!m_pooling)
+      if (!pooling)
         if (!SDL_PollEvent(&event)) break;
     }
-    if (hasIdleCallback()) m_callIdleCallback();
+    if (hasIdleCallback()) callIdleCallback();
   }
+}
+
+void MainLoop::stop(){
+  running = false;
 }
 
 /**
@@ -150,8 +162,8 @@ void MainLoop::operator()() {
  *
  * @param callback idle callback
  */
-void MainLoop::setIdleCallback(std::function<void()> const& callback) {
-  m_idleCallback = callback;
+void MainLoop::setIdleCallback(function<void()> const& callback) {
+  idleCallback = callback;
 }
 
 /**
@@ -160,7 +172,7 @@ void MainLoop::setIdleCallback(std::function<void()> const& callback) {
  * @return true if this main loop has idle callback
  */
 bool MainLoop::hasIdleCallback() const {
-  return m_idleCallback != nullptr;
+  return idleCallback != nullptr;
 }
 
 /**
@@ -171,8 +183,22 @@ bool MainLoop::hasIdleCallback() const {
  * @param handler callback
  */
 void MainLoop::setEventHandler(
-    std::function<bool(SDL_Event const&)> const& handler) {
-  m_eventHandler = handler;
+    function<bool(SDL_Event const&)> const& handler) {
+  eventHandler = handler;
+}
+
+/**
+ * @brief This function sets main loop event callback (SDL_QUIT forexample)
+ *
+ * @param event event type
+ * @param fce callback
+ */
+void MainLoop::setEventCallback(Uint32 event,std::function<bool(SDL_Event const&)> const& fce){
+  if(fce == nullptr){
+    eventCallbacks.erase(event);
+    return;
+  }
+  eventCallbacks[event] = fce;
 }
 
 /**
@@ -181,7 +207,7 @@ void MainLoop::setEventHandler(
  * @return event handler callback
  */
 bool MainLoop::hasEventHandler() const {
-  return m_eventHandler != nullptr;
+  return eventHandler != nullptr;
 }
 
 /**
@@ -190,7 +216,7 @@ bool MainLoop::hasEventHandler() const {
  * @return begin iterator of names of registered windows
  */
 MainLoop::ConstNameIterator MainLoop::nameBegin() const {
-  return m_name2Window.begin();
+  return name2Window.begin();
 }
 
 /**
@@ -199,7 +225,7 @@ MainLoop::ConstNameIterator MainLoop::nameBegin() const {
  * @return end iterator of names of registered windows
  */
 MainLoop::ConstNameIterator MainLoop::nameEnd() const {
-  return m_name2Window.end();
+  return name2Window.end();
 }
 
 /**
@@ -208,7 +234,7 @@ MainLoop::ConstNameIterator MainLoop::nameEnd() const {
  * @return begin iterator of ids of registerd windows
  */
 MainLoop::ConstIdIterator MainLoop::idBegin() const {
-  return m_id2Name.begin();
+  return id2Name.begin();
 }
 
 /**
@@ -217,7 +243,7 @@ MainLoop::ConstIdIterator MainLoop::idBegin() const {
  * @return end iterator of ids of registered windows
  */
 MainLoop::ConstIdIterator MainLoop::idEnd() const {
-  return m_id2Name.end();
+  return id2Name.end();
 }
 
 /**
@@ -226,15 +252,15 @@ MainLoop::ConstIdIterator MainLoop::idEnd() const {
  * @return number of registered windows
  */
 size_t MainLoop::getNofWindows() const {
-  return m_name2Window.size();
+  return name2Window.size();
 }
 
-void MainLoop::m_callIdleCallback() {
-  assert(m_idleCallback != nullptr);
-  m_idleCallback();
+void MainLoop::callIdleCallback() {
+  assert(idleCallback != nullptr);
+  idleCallback();
 }
 
-bool MainLoop::m_callEventHandler(SDL_Event const& event) {
-  assert(m_eventHandler != nullptr);
-  return m_eventHandler(event);
+bool MainLoop::callEventHandler(SDL_Event const& event) {
+  assert(eventHandler != nullptr);
+  return eventHandler(event);
 }

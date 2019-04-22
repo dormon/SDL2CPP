@@ -6,6 +6,7 @@
 #include <iostream>
 
 using namespace sdl2cpp;
+using namespace std;
 
 /**
  * @brief Creates new Window
@@ -18,12 +19,12 @@ Window::Window(uint32_t width, uint32_t height)
   initSDL2();
 
   Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
-  m_window     = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED,
+  window     = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, width, height, flags);
-  if (!m_window) throw ex::Window(SDL_GetError());
+  if (!window) throw ex::Window(SDL_GetError());
   setWindowEventCallback(
       SDL_WINDOWEVENT_CLOSE,
-      std::bind(&Window::m_defaultCloseCallback, this, std::placeholders::_1));
+      bind(&Window::defaultCloseCallback, this, placeholders::_1));
 }
 
 /**
@@ -33,15 +34,15 @@ Window::~Window()
 {
   // free contexts, otherwise it would cause memory leak on gpu (according to
   // CodeXL)
-  m_contexts.clear();
-  SDL_DestroyWindow(m_window);
+  contexts.clear();
+  SDL_DestroyWindow(window);
 }
 
 void setContextMajorVersion(uint32_t version)
 {
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version / 100) >= 0)
     return;
-  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_MAJOR_VERISON - ") +
+  throw ex::CreateContext(string("SDL_GL_CONTEXT_MAJOR_VERISON - ") +
                           SDL_GetError());
 }
 
@@ -50,21 +51,21 @@ void setContextMinorVersion(uint32_t version)
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, (version % 100) / 10) >=
       0)
     return;
-  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_MINOR_VERISON - ") +
+  throw ex::CreateContext(string("SDL_GL_CONTEXT_MINOR_VERISON - ") +
                           SDL_GetError());
 }
 
 void setContextProfile(Window::Profile profile)
 {
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile) >= 0) return;
-  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_PROFILE_MASK - ") +
+  throw ex::CreateContext(string("SDL_GL_CONTEXT_PROFILE_MASK - ") +
                           SDL_GetError());
 }
 
 void setContextFlags(Window::Flag flags)
 {
   if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags) >= 0) return;
-  throw ex::CreateContext(std::string("SDL_GL_CONTEXT_FLAGS - ") +
+  throw ex::CreateContext(string("SDL_GL_CONTEXT_FLAGS - ") +
                           SDL_GetError());
 }
 
@@ -77,7 +78,7 @@ void setContextFlags(Window::Flag flags)
  * @param flags context flags, debug context ...
  *
  */
-void Window::createContext(std::string const& name,
+void Window::createContext(string const& name,
                            uint32_t           version,
                            Profile            profile,
                            Flag               flags)
@@ -86,14 +87,14 @@ void Window::createContext(std::string const& name,
   setContextMinorVersion(version);
   setContextProfile(profile);
   setContextFlags(flags);
-  SharedSDLContext ctx = std::shared_ptr<SDL_GLContext>(
+  SharedSDLContext ctx = shared_ptr<SDL_GLContext>(
       new SDL_GLContext, [&](SDL_GLContext* ctx) {
         if (*ctx) SDL_GL_DeleteContext(*ctx);
         delete ctx;
       });
-  *ctx = SDL_GL_CreateContext(m_window);
+  *ctx = SDL_GL_CreateContext(window);
   if (*ctx == nullptr) throw ex::CreateContext(SDL_GetError());
-  m_contexts[name] = ctx;
+  contexts[name] = ctx;
 }
 
 /**
@@ -103,12 +104,12 @@ void Window::createContext(std::string const& name,
  * @param other other window
  * @param otherName name of other window context
  */
-void Window::setContext(std::string const& name,
+void Window::setContext(string const& name,
                         Window const&      other,
-                        std::string const& otherName)
+                        string const& otherName)
 {
-  assert(other.m_contexts.count(otherName) != 0);
-  m_contexts[name] = other.m_contexts.find(otherName)->second;
+  assert(other.contexts.count(otherName) != 0);
+  contexts[name] = other.contexts.find(otherName)->second;
 }
 
 /**
@@ -116,24 +117,24 @@ void Window::setContext(std::string const& name,
  *
  * @param name name of context that will be current
  */
-void Window::makeCurrent(std::string const& name) const
+void Window::makeCurrent(string const& name) const
 {
-  assert(m_contexts.count(name) != 0);
-  if (SDL_GL_MakeCurrent(m_window, *m_contexts.find(name)->second) < 0)
+  assert(contexts.count(name) != 0);
+  if (SDL_GL_MakeCurrent(window, *contexts.find(name)->second) < 0)
     throw ex::WindowMethod("makeCurrent", SDL_GetError());
 }
 
 /**
  * @brief Swaps buffers (front and back buffers)
  */
-void Window::swap() const { SDL_GL_SwapWindow(m_window); }
+void Window::swap() const { SDL_GL_SwapWindow(window); }
 
 /**
  * @brief Returns window id
  *
  * @return window id
  */
-Window::WindowId Window::getId() const { return SDL_GetWindowID(m_window); }
+Window::WindowId Window::getId() const { return SDL_GetWindowID(window); }
 
 /**
  * @brief Sets callback for particular event in this event
@@ -143,13 +144,13 @@ Window::WindowId Window::getId() const { return SDL_GetWindowID(m_window); }
  */
 void Window::setEventCallback(
     EventType const&                             eventType,
-    std::function<bool(SDL_Event const&)> const& callback)
+    function<bool(SDL_Event const&)> const& callback)
 {
   if (callback == nullptr) {
-    m_eventCallbacks.erase(eventType);
+    eventCallbacks.erase(eventType);
     return;
   }
-  m_eventCallbacks[eventType] = callback;
+  eventCallbacks[eventType] = callback;
 }
 
 /**
@@ -160,13 +161,13 @@ void Window::setEventCallback(
  */
 void Window::setWindowEventCallback(
     uint8_t const&                               eventType,
-    std::function<bool(SDL_Event const&)> const& callback)
+    function<bool(SDL_Event const&)> const& callback)
 {
   if (callback == nullptr) {
-    m_windowEventCallbacks.erase(eventType);
+    windowEventCallbacks.erase(eventType);
     return;
   }
-  m_windowEventCallbacks[eventType] = callback;
+  windowEventCallbacks[eventType] = callback;
 }
 
 /**
@@ -178,8 +179,8 @@ void Window::setWindowEventCallback(
  */
 bool Window::hasEventCallback(EventType const& eventType) const
 {
-  auto ii = m_eventCallbacks.find(eventType);
-  return ii != m_eventCallbacks.end() && ii->second != nullptr;
+  auto ii = eventCallbacks.find(eventType);
+  return ii != eventCallbacks.end() && ii->second != nullptr;
 }
 
 /**
@@ -191,8 +192,8 @@ bool Window::hasEventCallback(EventType const& eventType) const
  */
 bool Window::hasWindowEventCallback(uint8_t const& eventType) const
 {
-  auto ii = m_windowEventCallbacks.find(eventType);
-  return ii != m_windowEventCallbacks.end() && ii->second != nullptr;
+  auto ii = windowEventCallbacks.find(eventType);
+  return ii != windowEventCallbacks.end() && ii->second != nullptr;
 }
 
 /**
@@ -203,7 +204,7 @@ bool Window::hasWindowEventCallback(uint8_t const& eventType) const
  */
 void Window::setSize(uint32_t width, uint32_t heght)
 {
-  SDL_SetWindowSize(m_window, width, heght);
+  SDL_SetWindowSize(window, width, heght);
 }
 
 /**
@@ -214,7 +215,7 @@ void Window::setSize(uint32_t width, uint32_t heght)
 uint32_t Window::getWidth() const
 {
   int size[2];
-  SDL_GetWindowSize(m_window, size + 0, size + 1);
+  SDL_GetWindowSize(window, size + 0, size + 1);
   return size[0];
 }
 
@@ -226,7 +227,7 @@ uint32_t Window::getWidth() const
 uint32_t Window::getHeight() const
 {
   int size[2];
-  SDL_GetWindowSize(m_window, size + 0, size + 1);
+  SDL_GetWindowSize(window, size + 0, size + 1);
   return size[1];
 }
 
@@ -237,7 +238,7 @@ uint32_t Window::getHeight() const
  */
 void Window::setFullscreen(Fullscreen const& type)
 {
-  if (SDL_SetWindowFullscreen(m_window, type))
+  if (SDL_SetWindowFullscreen(window, type))
     throw ex::WindowMethod("setFullscreen", SDL_GetError());
 }
 
@@ -248,16 +249,16 @@ void Window::setFullscreen(Fullscreen const& type)
  */
 Window::Fullscreen Window::getFullscreen()
 {
-  auto flags = SDL_GetWindowFlags(m_window);
+  auto flags = SDL_GetWindowFlags(window);
   if (flags & FULLSCREEN) return FULLSCREEN;
   if (flags & FULLSCREEN_DESKTOP) return FULLSCREEN_DESKTOP;
   return WINDOW;
 }
 
-SDL_GLContext Window::getContext(std::string const& name) const
+SDL_GLContext Window::getContext(string const& name) const
 {
-  auto const it = m_contexts.find(name);
-  if (it == m_contexts.end()) return nullptr;
+  auto const it = contexts.find(name);
+  if (it == contexts.end()) return nullptr;
   return *it->second;
 }
 
@@ -266,27 +267,27 @@ SDL_GLContext Window::getContext(std::string const& name) const
  *
  * @return window object
  */
-bool Window::m_defaultCloseCallback(SDL_Event const&)
+bool Window::defaultCloseCallback(SDL_Event const&)
 {
-  assert(m_mainLoop != nullptr);
-  m_mainLoop->removeWindow(getId());
+  assert(mainLoop != nullptr);
+  mainLoop->removeWindow(getId());
   return true;
 }
 
-bool Window::m_callEventCallback(EventType const& eventType,
+bool Window::callEventCallback(EventType const& eventType,
                                  SDL_Event const& event)
 {
-  assert(m_eventCallbacks.count(eventType) != 0);
-  assert(m_eventCallbacks.at(eventType) != nullptr);
-  return m_eventCallbacks.at(eventType)(event);
+  assert(eventCallbacks.count(eventType) != 0);
+  assert(eventCallbacks.at(eventType) != nullptr);
+  return eventCallbacks.at(eventType)(event);
 }
 
-bool Window::m_callWindowEventCallback(uint8_t const&   eventType,
+bool Window::callWindowEventCallback(uint8_t const&   eventType,
                                        SDL_Event const& eventData)
 {
-  assert(m_windowEventCallbacks.count(eventType) != 0);
-  assert(m_windowEventCallbacks.at(eventType) != nullptr);
-  return m_windowEventCallbacks.at(eventType)(eventData);
+  assert(windowEventCallbacks.count(eventType) != 0);
+  assert(windowEventCallbacks.at(eventType) != nullptr);
+  return windowEventCallbacks.at(eventType)(eventData);
 }
 
-SDL_Window* Window::getWindow() const { return m_window; }
+SDL_Window* Window::getWindow() const { return window; }

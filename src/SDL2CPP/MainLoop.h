@@ -26,9 +26,11 @@ class sdl2cpp::MainLoop {
   SDL2CPP_EXPORT bool hasWindow(std::string const& name) const;
   SDL2CPP_EXPORT SharedWindow const& getWindow(std::string const& name) const;
   SDL2CPP_EXPORT void                operator()();
+  SDL2CPP_EXPORT void                stop();
   SDL2CPP_EXPORT void                setIdleCallback(std::function<void()> const& callback);
   SDL2CPP_EXPORT bool                hasIdleCallback() const;
   SDL2CPP_EXPORT void setEventHandler(std::function<bool(SDL_Event const&)> const& handler);
+  SDL2CPP_EXPORT void setEventCallback(Uint32 event,std::function<bool(SDL_Event const&)> const& fce);
   SDL2CPP_EXPORT bool hasEventHandler() const;
   SDL2CPP_EXPORT ConstNameIterator nameBegin() const;
   SDL2CPP_EXPORT ConstNameIterator nameEnd() const;
@@ -37,12 +39,13 @@ class sdl2cpp::MainLoop {
   SDL2CPP_EXPORT size_t            getNofWindows() const;
 
  protected:
-  std::function<bool(SDL_Event const&)> m_eventHandler = nullptr;
-  std::function<void()>                 m_idleCallback = nullptr;
-  bool                                  m_pooling      = true;
-  bool                                  m_running      = false;
-  Name2Window                           m_name2Window;
-  Id2Name                               m_id2Name;
-  void                                  m_callIdleCallback();
-  bool m_callEventHandler(SDL_Event const& event);
+  std::function<bool(SDL_Event const&)> eventHandler = nullptr;
+  std::function<void()>                 idleCallback = nullptr;
+  std::map<Uint32,std::function<bool(SDL_Event const&)>>eventCallbacks;
+  bool                                  pooling      = true;
+  bool                                  running      = false;
+  Name2Window                           name2Window;
+  Id2Name                               id2Name;
+  void                                  callIdleCallback();
+  bool callEventHandler(SDL_Event const& event);
 };
