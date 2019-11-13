@@ -9,79 +9,64 @@
 
 class sdl2cpp::ex::Exception : public std::runtime_error {
  public:
-  Exception(std::string const& msg) : std::runtime_error(msg) {}
-  virtual ~Exception() throw() {}
-  virtual char const* what() const throw() override
-  {
-    return std::string(std::string("SDL2CPP - ") + std::runtime_error::what())
-        .c_str();
+  Exception(std::string const& msg = "") : std::runtime_error(msg) {
+    prefix = "SDL2CPP";
+    createMessage(msg);
   }
+  virtual ~Exception() throw() {}
+  virtual char const* what() const throw() override{
+    return message.c_str();
+  }
+  void createMessage(std::string const&msg){
+    if(msg == "")return;
+    message = prefix + " - " + msg;
+  }
+  std::string message;
+  std::string prefix;
 };
 
 class sdl2cpp::ex::Class : public Exception {
  public:
   Class(std::string const& className, std::string const& msg)
-      : Exception(msg), className(className)
+      : Exception()
   {
+    prefix += "::" + className;
+    createMessage(msg);
   }
-  virtual char const* what() const throw() override
-  {
-    return std::string(std::string("SDL2CPP::") + className + " - " +
-                       std::runtime_error::what())
-        .c_str();
-  }
-
  protected:
-  std::string className;
 };
 
 class sdl2cpp::ex::Window : public Class {
  public:
-  Window(std::string const& msg) : Class("Window", msg) {}
+  Window(std::string const& msg = "") : Class("Window", msg) {}
 };
 
 class sdl2cpp::ex::MainLoop : public Class {
  public:
-  MainLoop(std::string const& msg) : Class("MainLoop", msg) {}
+  MainLoop(std::string const& msg = "") : Class("MainLoop", msg) {}
 };
 
 class sdl2cpp::ex::MainLoopMethod : public MainLoop {
  public:
-  MainLoopMethod(std::string const& method, std::string const& m)
-      : MainLoop(m), methodName(method)
+  MainLoopMethod(std::string const& method, std::string const& msg)
+      : MainLoop()
   {
+    prefix += "::" + method + "()";
+    createMessage(msg);
   }
-  virtual char const* what() const throw() override
-  {
-    return std::string(std::string("SDL2CPP::" + className + "::" + methodName +
-                                   "() - ") +
-                       std::runtime_error::what())
-        .c_str();
-  }
-
- protected:
-  std::string methodName;
 };
 
 class sdl2cpp::ex::WindowMethod : public Window {
  public:
-  WindowMethod(std::string const& method, std::string const& m)
-      : Window(m), methodName(method)
+  WindowMethod(std::string const& method, std::string const& msg)
+      : Window()
   {
+    prefix += "::" + method + "()";
+    createMessage(msg);
   }
-  virtual char const* what() const throw() override
-  {
-    return std::string(std::string("SDL2CPP::" + className + "::" + methodName +
-                                   "() - ") +
-                       std::runtime_error::what())
-        .c_str();
-  }
-
- protected:
-  std::string methodName;
 };
 
 class sdl2cpp::ex::CreateContext : public WindowMethod {
  public:
-  CreateContext(std::string const& w) : WindowMethod("createContext",w) {}
+  CreateContext(std::string const& msg) : WindowMethod("createContext",msg) {}
 };
