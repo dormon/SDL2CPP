@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.0)
 
 project(
   SDL2CPP
-  VERSION 1.1.0
+  VERSION 1.1.1
   )
 
 #set these variables to *.cpp, *.c, ..., *.h, *.hpp, ...

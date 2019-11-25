@@ -89,6 +89,24 @@ MainLoop::SharedWindow const& MainLoop::getWindow(
   return name2Window.find(name)->second;
 }
 
+bool MainLoop::isWindowRelatedEvent(SDL_Event const&e){
+  return
+    e.type == SDL_DROPFILE          ||
+    e.type == SDL_DROPTEXT          ||
+    e.type == SDL_DROPBEGIN         ||
+    e.type == SDL_DROPCOMPLETE      ||
+    e.type == SDL_KEYDOWN           ||
+    e.type == SDL_KEYUP             ||
+    e.type == SDL_MOUSEMOTION       ||
+    e.type == SDL_MOUSEBUTTONDOWN   ||
+    e.type == SDL_MOUSEBUTTONUP     ||
+    e.type == SDL_MOUSEWHEEL        ||
+    e.type == SDL_TEXTEDITING       ||
+    e.type == SDL_TEXTINPUT         ||
+    e.type == SDL_WINDOWEVENT       ||
+    e.type >= SDL_USEREVENT         ;
+}
+
 /**
  * @brief Starts main loop
  */
@@ -100,27 +118,24 @@ void MainLoop::operator()() {
       running = false;
       break;
     }
+
     if (!pooling)
       if (SDL_WaitEvent(&event) == 0) {
         throw ex::MainLoop(SDL_GetError());
         return;
       }
+
     while (true) {
       if (pooling)
         if (!SDL_PollEvent(&event)) break;
 
       bool handledByEventHandler = false;
-
       if (hasEventHandler())
         handledByEventHandler = callEventHandler(event);
 
-      if (!handledByEventHandler) {
-        bool handledByMainLoopEventCallback = false;
-        auto it = eventCallbacks.find(event.type);
-        if(it != eventCallbacks.end())
-          handledByMainLoopEventCallback = it->second(event);
+      if(!handledByEventHandler){
+        if(isWindowRelatedEvent(event)){
 
-        if(!handledByMainLoopEventCallback){
           auto const& winID = event.window.windowID;
           auto windowIter = id2Name.find(winID);
           bool handledByEventCallback = false;
@@ -128,8 +143,9 @@ void MainLoop::operator()() {
             auto const& window = name2Window[windowIter->second];
             if (window->hasEventCallback(event.type))
               handledByEventCallback =
-                  window->callEventCallback(event.type, event);
+                window->callEventCallback(event.type, event);
           }
+
           if (!handledByEventCallback) {
             if (event.type == SDL_WINDOWEVENT) {
               bool handledByWindowEventCallback = false;
@@ -137,12 +153,16 @@ void MainLoop::operator()() {
                 auto const& window = name2Window.at(windowIter->second);
                 if (window->hasWindowEventCallback(event.window.event))
                   handledByWindowEventCallback =
-                      window->callWindowEventCallback(event.window.event,
-                                                        event);
+                    window->callWindowEventCallback(event.window.event,
+                        event);
               }
               (void)handledByWindowEventCallback;
             }
           }
+        }else{
+          auto it = eventCallbacks.find(event.type);
+          if(it != eventCallbacks.end())
+            it->second(event);
         }
       }
 

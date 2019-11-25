@@ -47,5 +47,6 @@ class sdl2cpp::MainLoop {
   Name2Window                           name2Window;
   Id2Name                               id2Name;
   void                                  callIdleCallback();
+  bool                                  isWindowRelatedEvent(SDL_Event const&e);
   bool callEventHandler(SDL_Event const& event);
 };
