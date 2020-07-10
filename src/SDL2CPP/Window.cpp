@@ -18,6 +18,9 @@ Window::Window(uint32_t width, uint32_t height)
 {
   initSDL2();
 
+  //this should be changeable
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
   Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
   window     = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED,
                               SDL_WINDOWPOS_CENTERED, width, height, flags);
@@ -87,6 +90,7 @@ void Window::createContext(string const& name,
   setContextMinorVersion(version);
   setContextProfile(profile);
   setContextFlags(flags);
+
   SharedSDLContext ctx = shared_ptr<SDL_GLContext>(
       new SDL_GLContext, [&](SDL_GLContext* ctx) {
         if (*ctx) SDL_GL_DeleteContext(*ctx);
